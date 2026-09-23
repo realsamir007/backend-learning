@@ -1,0 +1,17 @@
+.postman
+/postman
+.vscode
+
+
+.env
+.env.*
+!.env.example
+
+**/node_modules/
+npm-debug.log*
+
+# macOS
+.DS_Store
+
+# Logs
+*.log
