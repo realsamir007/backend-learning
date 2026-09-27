@@ -1,5 +1,8 @@
 const express = require('express');
-const pool = require('./config/database');
+// const pool = require('./config/database');
+
+const userRoutes = require("./src/routes/userRoutes");
+const databaseHealthRoutes = require("./src/routes/databaseHealthRoutes");
 
 const app = express();
 
@@ -12,14 +15,16 @@ app.use(express.json());
 //     res.json(users);
 // });
 
-app.get('/users', async (req, res) => {
-    const result = await pool.query(
-        "SELECT * FROM users;"
-    );
-    res.status(200).json({
-        users: result.rows
-    });
-});
+// app.get('/users', async (req, res) => {
+//     const result = await pool.query(
+//         "SELECT * FROM users;"
+//     );
+//     res.status(200).json({
+//         users: result.rows
+//     });
+// });
+
+app.use('/users', userRoutes)
 
 // II. GET USERS BY ID
 // app.get('/users/:id', (req, res)=>{
@@ -37,42 +42,46 @@ app.get('/users', async (req, res) => {
 //     // 4. If found, send the user data
 //     res.status(200).json(user);
 // });
-app.get('/users/:id', async (req, res) => {
-    const userId = req.params.id;
 
-    try {
-        const result = await pool.query(
-            `
-            SELECT * FROM users 
-            WHERE id = $1;
-            `,
-            [userId]
-        );
 
-        // 1. Check if a user was actually found
-        if (result.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "User not found"
-            });
-        }
+// app.get('/users/:id', async (req, res) => {
+//     const userId = req.params.id;
 
-        // 2. Return the found user
-        res.status(200).json({
-            success: true,
-            user: result.rows[0]
-        });
+//     try {
+//         const result = await pool.query(
+//             `
+//             SELECT * FROM users 
+//             WHERE id = $1;
+//             `,
+//             [userId]
+//         );
 
-    } catch (error) {
-        // 3. Catch structural or connection errors (e.g., malformed UUID format)
-        console.error('Error fetching user:', error);
-        res.status(500).json({
-            success: false,
-            message: "Internal server error",
-            error: error.message
-        });
-    }
-});
+//         // 1. Check if a user was actually found
+//         if (result.rows.length === 0) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: "User not found"
+//             });
+//         }
+
+//         // 2. Return the found user
+//         res.status(200).json({
+//             success: true,
+//             user: result.rows[0]
+//         });
+
+//     } catch (error) {
+//         // 3. Catch structural or connection errors (e.g., malformed UUID format)
+//         console.error('Error fetching user:', error);
+//         res.status(500).json({
+//             success: false,
+//             message: "Internal server error",
+//             error: error.message
+//         });
+//     }
+// });
+
+app.use('/users', userRoutes);
 
 // III. POST
 // app.post('/users', (req, res) => {
@@ -109,40 +118,42 @@ app.get('/users/:id', async (req, res) => {
 
 // });
 
-app.post('/users', async (req, res) => {
-    try {
-        const { name, email } = req.body;
+// app.post('/users', async (req, res) => {
+//     try {
+//         const { name, email } = req.body;
 
-        if (!name || !email) {
-            return res.status(400).json({ 
-                success:false,
-                error: "name and email is required" 
-            });
-        }
+//         if (!name || !email) {
+//             return res.status(400).json({ 
+//                 success:false,
+//                 error: "name and email is required" 
+//             });
+//         }
 
-        const query = 
-        `
-        INSERT INTO users (name, email)
-        VALUES ($1, $2)
-        RETURNING id, name, email;
-        `;
+//         const query = 
+//         `
+//         INSERT INTO users (name, email)
+//         VALUES ($1, $2)
+//         RETURNING id, name, email;
+//         `;
         
-        const result = await pool.query(query, [name, email]);
+//         const result = await pool.query(query, [name, email]);
 
-        res.status(201).json({
-            success:true,
-            message: "User Created Successfully",
-            user:result.rows[0]});
+//         res.status(201).json({
+//             success:true,
+//             message: "User Created Successfully",
+//             user:result.rows[0]});
 
-    } catch (error) {
-        console.log("Error Message:", error);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
+//     } catch (error) {
+//         console.log("Error Message:", error);
+//         res.status(500).json({
+//             success: false,
+//             error: error.message
+//         });
+//     }
    
-});
+// });
+
+app.use('/users', userRoutes)
 
 //IV. PUT
 // app.put('/users/:id', (req, res) => {
@@ -162,43 +173,45 @@ app.post('/users', async (req, res) => {
 //     res.status(200).json(user);
 // });
 
-app.put('/users/:id', async (req, res) => {
-    const userId = req.params.id;
+// app.put('/users/:id', async (req, res) => {
+//     const userId = req.params.id;
 
-    const { name, email } = req.body;
+//     const { name, email } = req.body;
 
-    try {
-        const queryText =
-            `
-        UPDATE users
-        SET name = $1, email = $2
-        WHERE id = $3
-        RETURNING *;
-        `
-            ;
-        const result = await pool.query(queryText, [name, email, userId]);
+//     try {
+//         const queryText =
+//             `
+//         UPDATE users
+//         SET name = $1, email = $2
+//         WHERE id = $3
+//         RETURNING *;
+//         `
+//             ;
+//         const result = await pool.query(queryText, [name, email, userId]);
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "User Not Found"
-            });
-        }
+//         if (result.rows.length === 0) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: "User Not Found"
+//             });
+//         }
 
-        res.json({
-            success: true,
-            message: "User Updated",
-            user: result.rows[0]
-        });
+//         res.json({
+//             success: true,
+//             message: "User Updated",
+//             user: result.rows[0]
+//         });
 
-    } catch (error) {
-        console.error('Update error:', error);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
+//     } catch (error) {
+//         console.error('Update error:', error);
+//         res.status(500).json({
+//             success: false,
+//             error: error.message
+//         });
+//     }
+// });
+
+app.use("/users", userRoutes);
 
 // V. DELETE
 // app.delete('/users/:id', (req, res) => {
@@ -218,63 +231,68 @@ app.put('/users/:id', async (req, res) => {
 //     res.status(200).json({ message: "User Successfully Deleted", user: deleteUser[0] });
 // });
 
-app.delete('/users/:id', async (req, res) => {
-    const userId = req.params.id;
-    const query =
-        `
-    DELETE FROM users
-    WHERE id = $1
-    RETURNING *;
-    `;
+// app.delete('/users/:id', async (req, res) => {
+//     const userId = req.params.id;
+//     const query =
+//         `
+//     DELETE FROM users
+//     WHERE id = $1
+//     RETURNING *;
+//     `;
 
-    try {
-        const result = await pool.query(query, [userId]);
+//     try {
+//         const result = await pool.query(query, [userId]);
 
-        if (result.rows.length === 0) {
-            return res.status(404).json({
-                success: false,
-                message: "User Not Found"
-            });
-        }
+//         if (result.rows.length === 0) {
+//             return res.status(404).json({
+//                 success: false,
+//                 message: "User Not Found"
+//             });
+//         }
 
-        res.status(200).json({
-            success: true,
-            message: "User successfully deleted",
-            user: result.rows[0]
-        });
-    } catch (error) {
-        console.error("Error Message:", error);
-        res.status(500).json({
-            success: false,
-            error: error.message
-        });
-    }
-});
+//         res.status(200).json({
+//             success: true,
+//             message: "User successfully deleted",
+//             user: result.rows[0]
+//         });
+//     } catch (error) {
+//         console.error("Error Message:", error);
+//         res.status(500).json({
+//             success: false,
+//             error: error.message
+//         });
+//     }
+// });
+
+app.use("/users", userRoutes);
 
 // Checking Health of Database
 
-app.get("/health/database", async (req, res) => {
-    try {
-        const result = await pool.query(
-            'SELECT NOW();'
-        );
+// app.get("/health/database", async (req, res) => {
+//     try {
+//         const result = await pool.query(
+//             'SELECT NOW();'
+//         );
 
-        res.json({
-            status: "connected",
-            //database: result.rows[0].current_database,
-            dbTime: result.rows[0].now,
-        });
-    } catch (error) {
-        console.error("Database connection failed:", error);
+//         res.json({
+//             status: "connected",
+//             //database: result.rows[0].current_database,
+//             dbTime: result.rows[0].now,
+//         });
+//     } catch (error) {
+//         console.error("Database connection failed:", error);
 
-        res.status(500).json({
-            status: "error",
-            message: "Database connection failed",
-        });
-    }
+//         res.status(500).json({
+//             status: "error",
+//             message: "Database connection failed",
+//         });
+//     }
 
-});
+// });
 
+app.use("/health/database", databaseHealthRoutes);
+
+module.exports = app;
 
 app.listen(3000, () => {
     console.log("Server is running on port 3000");
