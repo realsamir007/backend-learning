@@ -3,6 +3,7 @@ const express = require('express');
 
 const userRoutes = require("./src/routes/userRoutes");
 const databaseHealthRoutes = require("./src/routes/databaseHealthRoutes");
+const authRoutes = require("./src/routes/authRoutes");
 
 const app = express();
 
@@ -291,6 +292,8 @@ app.use("/users", userRoutes);
 // });
 
 app.use("/health/database", databaseHealthRoutes);
+
+app.use("/auth", authRoutes);
 
 module.exports = app;
 
