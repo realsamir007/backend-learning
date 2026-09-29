@@ -86,10 +86,19 @@ async function login(req, res) {
             password
         );
 
+        res.cookie("session_token", result.session, {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
+
         res.status(200).json({
             message: "Login Successful",
             ...result,
         });
+
+
 
     } catch (error) {
         console.error("Login error:", error);
@@ -107,7 +116,42 @@ async function login(req, res) {
 
 }
 
+async function logout(req, res) {
+    try {
+        const sessionToken = req.cookies.session_token;
+
+        if (!sessionToken) {
+            return res.status(401).json({
+                message: "Session Token is required",
+            });
+        };
+
+        const result = await authService.logoutUser(
+            sessionToken
+        );
+
+        res.clearCookie("session_token", {
+            httpOnly: true,
+            secure: false,
+            sameSite: "lax"
+        });
+
+        res.status(200).json({
+            success: true,
+            message: "Logged Out SuccessFully"
+        })
+
+    } catch (error) {
+        if (error.message === "INVALID_SESSION") {
+            return res.status(401).json({
+                message: "Invalid or expired session"
+            });
+        }
+    };
+}
+
 module.exports = {
     register,
-    login
+    login,
+    logout
 };

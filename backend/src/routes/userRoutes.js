@@ -1,4 +1,5 @@
 const express = require("express");
+const authenticate = require("../middleware/authMiddleware");
 
 const {
     getUsers,
@@ -10,7 +11,7 @@ const {
 
 const router = express.Router();
 
-router.get("/", getUsers)
+router.get("/", authenticate, getUsers)
 router.get("/:id", getUsersId);
 
 router.post("/", createNewUser)

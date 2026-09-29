@@ -1,4 +1,6 @@
 const bcrypt = require('bcrypt');
+const crypto = require('crypto');
+
 const pool = require("../../config/database");
 
 
@@ -12,9 +14,9 @@ async function registerUser(name, email, password) {
         [email]
     );
 
-    if (existingUser.rows.length > 0){
+    if (existingUser.rows.length > 0) {
         throw new Error("EMAIL_ALREADY_EXIST");
-    } 
+    }
 
     const passwordHash = await bcrypt.hash(password, 12);
 
@@ -40,7 +42,7 @@ async function loginUser(email, password) {
         [email]
     );
 
-    if (result.rows.length === 0){
+    if (result.rows.length === 0) {
         throw new Error("INVALID_CREDENTIALS");
     }
 
@@ -50,21 +52,48 @@ async function loginUser(email, password) {
         password,
         user.password_hash
     );
-    
-    if (!passwordMatch){
+
+    if (!passwordMatch) {
         throw new Error("INVALID_CREDENTIALS");
     }
 
+    const sessionToken = crypto.randomBytes(32).toString('hex');
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    const storeSession = await pool.query(
+        `
+        INSERT INTO sessions (user_id, session_token, expire_at)
+        VALUES ($1, $2, $3)
+        `,
+        [user.id, sessionToken, expiresAt]
+    );
+
     return {
+        session: sessionToken,
         user: {
             id: user.id,
             name: user.name,
             email: user.email
         },
-    };  
+    };
+}
+
+async function logoutUser(sessionToken) {
+    const result = await pool.query(
+        `
+        DELETE FROM sessions
+        WHERE session_token = $1;
+        `,
+        [sessionToken]
+    );
+
+    if (result.rowCount === 0) {
+        throw new Error("INVALID_SESSION");
+        };
 }
 
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    logoutUser
 };

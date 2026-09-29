@@ -1,13 +1,17 @@
 const express = require('express');
+const cookieParser = require('cookie-parser');
 // const pool = require('./config/database');
 
 const userRoutes = require("./src/routes/userRoutes");
 const databaseHealthRoutes = require("./src/routes/databaseHealthRoutes");
 const authRoutes = require("./src/routes/authRoutes");
+const authenticate = require("./src/middleware/authMiddleware");
 
 const app = express();
 
 app.use(express.json());
+
+app.use(cookieParser());
 
 
 // I. GET
@@ -25,7 +29,7 @@ app.use(express.json());
 //     });
 // });
 
-app.use('/users', userRoutes)
+// app.use('/users', userRoutes)
 
 // II. GET USERS BY ID
 // app.get('/users/:id', (req, res)=>{
@@ -82,7 +86,7 @@ app.use('/users', userRoutes)
 //     }
 // });
 
-app.use('/users', userRoutes);
+// app.use('/users', userRoutes);
 
 // III. POST
 // app.post('/users', (req, res) => {
@@ -154,7 +158,7 @@ app.use('/users', userRoutes);
    
 // });
 
-app.use('/users', userRoutes)
+// app.use('/users', userRoutes)
 
 //IV. PUT
 // app.put('/users/:id', (req, res) => {
@@ -212,7 +216,7 @@ app.use('/users', userRoutes)
 //     }
 // });
 
-app.use("/users", userRoutes);
+// app.use("/users", userRoutes);
 
 // V. DELETE
 // app.delete('/users/:id', (req, res) => {
@@ -265,7 +269,7 @@ app.use("/users", userRoutes);
 //     }
 // });
 
-app.use("/users", userRoutes);
+// app.use("/users", userRoutes);
 
 // Checking Health of Database
 
@@ -292,6 +296,7 @@ app.use("/users", userRoutes);
 // });
 
 app.use("/health/database", databaseHealthRoutes);
+app.use("/users", userRoutes);
 
 app.use("/auth", authRoutes);
 
